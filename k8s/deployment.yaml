@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: servicio-transacciones
+  labels:
+    app: servicio-transacciones
+    version: v1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: servicio-transacciones
+  template:
+    metadata:
+      labels:
+        app: servicio-transacciones
+        version: v1
+    spec:
+      containers:
+      - name: servicio
+        image: servicio:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "prod"
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: servicio-config
+              key: database.url
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: servicio-secret
+              key: database.username
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: servicio-secret
+              key: database.password
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - servicio-transacciones
+              topologyKey: kubernetes.io/hostname
+      serviceAccountName: servicio-sa
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: servicio-config
+data:
+  database.url: "jdbc:postgresql://postgres-svc:5432/transacciones"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: servicio-secret
+type: Opaque
+stringData:
+  database.username: "transacciones_user"
+  database.password: "changeme"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: servicio-sa

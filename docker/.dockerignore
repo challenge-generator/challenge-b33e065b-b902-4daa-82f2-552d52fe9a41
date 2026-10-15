@@ -1,0 +1,63 @@
+# Git
+.git
+.gitignore
+
+# Maven build artifacts
+target/
+.mvn/
+mvnw
+mvnw.cmd
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE files
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.settings/
+.classpath
+.project
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation and configs (not needed in image)
+docs/
+k8s/
+docker/
+README.md
+AGENTS.md
+.env
+.env.*
+
+# Logs
+*.log
+logs/
+
+# Test files
+src/test/
+*.test
+*.tests
+
+# Build scripts
+*.sh
+build.sh
+deploy.sh
+
+# Temporary files
+*.tmp
+*.bak
+*.orig

@@ -1,0 +1,82 @@
+spring:
+  application:
+    name: servicio-transacciones
+  profiles:
+    active: dev
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/banco_transacciones
+    username: banco_user
+    password: banco_password
+    pool:
+      enabled: true
+      initial-size: 10
+      max-size: 20
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  webflux:
+    base-path: /api/v1
+
+server:
+  port: 8080
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: db
+        liveness:
+          include: ping
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    org.springframework: INFO
+    com.banco: DEBUG
+    io.r2dbc: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+---
+
+spring.config.activate.on-profile: dev
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://postgres:5432/banco_transacciones
+    username: banco_user
+    password: banco_password
+
+---
+
+spring.config.activate.on-profile: prod
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    pool:
+      max-size: 50
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+management:
+  endpoint:
+    health:
+      show-details: always
